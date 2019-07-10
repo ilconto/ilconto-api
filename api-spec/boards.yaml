@@ -28,28 +28,21 @@ paths:
               properties:
                 boardId:
                   type: integer
+                  example: 12
                 boardName:
                   type: string
+                  example: myAwesomeBoard
 
     post:
       summary: Creates a board
       description: Initializing a new board.
       parameters:
-        - name: boardName
+        - name: boardInfo
           in: body
           description: The name of the new board.
-          type: string
-        - name: members
-          in: body
-          description: The list of emails of members to initialize the boards.
           schema:
-            type: array
-            items:
-              required:
-                - email
-              properties:
-                email:
-                  type: string
+            $ref: '#/definitions/BoardInitInfo'
+        
       responses:
         204:
           description: Board was succesfully created.
@@ -66,6 +59,7 @@ paths:
           required: true
           description: The board's unique id
           type: integer
+
       responses:
         200:
           description: A board
@@ -77,10 +71,47 @@ paths:
             properties:
               boardId:
                 type: integer
+                example: 3456
               boardName:
                 type: string
+                example: "This is my board"
               boardMembers: 
-                type: string
+                  type: array
+                  items:
+                    type: string
+                    example: "johnny"
+                
               
         404:
           description: The Board does not exists.
+          
+definitions:
+  BoardInitInfo :
+    description: Information needed to create a new board
+    properties:
+      boardName:
+        type: string
+        example: "Awesome board's name"
+        description: board's name
+      members:
+        type: array
+        items:
+          required:
+            - email
+          properties:
+            email:
+              type: string
+              example: "johndoe@example.com"
+          description: board's member on init
+    required:
+      - boardName
+      
+      
+
+
+
+
+
+
+
+  
