@@ -84,6 +84,21 @@ paths:
               
         404:
           description: The Board does not exists.
+
+  /boards/{boardId}/reset/{userID} :
+    patch :
+      summary: Reset a member's score
+      description: "Gets all information of the board, including members and respective scores."
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: The board's unique id
+          type: integer
+        - name: userID
+          in: path
+          required: true
+          description: The user id of the member to reset
           
 definitions:
   BoardInitInfo :
