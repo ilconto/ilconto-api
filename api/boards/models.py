@@ -7,7 +7,8 @@ class User(AbstractUser):
     """
     Basic User class for boards extending the original django User class 
     """
-    pass
+    class Meta(object):
+       unique_together = ('email',)
 
 
 class Member(models.Model):
@@ -16,7 +17,8 @@ class Member(models.Model):
     """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
-    last_rest = models.DateTimeField()
+    last_reset = models.DateTimeField()
+    board = models.ForeignKey('boards.Board', on_delete=models.CASCADE)
 
 
 class Board(models.Model):
@@ -24,4 +26,3 @@ class Board(models.Model):
     Model representing a board
     """
     title = models.CharField(max_length=20)
-    members = models.ManyToManyField('boards.Member')
