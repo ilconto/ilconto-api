@@ -99,6 +99,9 @@ paths:
           in: path
           required: true
           description: The user id of the member to reset
+      responses:
+        204:
+          description: Confirms the reset
           
 definitions:
   BoardInitInfo :
