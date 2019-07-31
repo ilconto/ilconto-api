@@ -4,12 +4,16 @@ from .serializers import BoardSerializer
 from rest_framework.response import Response
 
 
-class BoardList(APIView):
+class BoardView(APIView):
+
+    def get(self, request, pk):
+        board = Board.objects.get(pk=pk)
+        serializer = BoardSerializer(board)
+        response = Response(serializer.data)
+        return response
+
+
+class ProfileView(APIView):
 
     def get(self, request):
-        boards = Board.objects.all()
-        serializer = BoardSerializer(boards, many=True)
-        return Response(serializer.data)
-
-    def post(self):
         pass
