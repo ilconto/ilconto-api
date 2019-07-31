@@ -22,6 +22,9 @@ class Member(models.Model):
     board = models.ForeignKey(
         'boards.Board', related_name="members", on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.user.username + " - " + self.board.title
+
 
 class Board(models.Model):
     """
