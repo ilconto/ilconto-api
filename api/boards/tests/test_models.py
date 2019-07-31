@@ -1,8 +1,7 @@
 from django.test import TestCase
 from datetime import datetime
 import pytz
-from .models import Member, User, Board
-from .serializers import BoardSerializer
+from ..models import Member, User, Board
 from django.db.utils import IntegrityError
 
 
@@ -33,14 +32,6 @@ class TestUserModel(TestCase):
         u.save()
         self.assertEqual(User.objects.first().username, 'hello2')
         u.username = 'hello'
-        u.save()
-
-    def test_can_change_username(self):
-        u = User.objects.first()
-        u.set_password('hello2')
-        u.save()
-        self.assertTrue(User.objects.first().check_password('hello2'))
-        u.password = 'oups'
         u.save()
 
     def test_can_delete_user(self):
@@ -118,14 +109,3 @@ class TestMemberModel(TestCase):
             m = Member(user=self.user, name="john",
                        last_reset=datetime.now(pytz.utc))
             m.save()
-
-
-class TestBoardSerializer(TestCase):
-
-    def test_serializes_board_with_members(self):
-        board = Board(title="test")
-        user = User.objects.create_user(
-            username="paul", email="test@example.com", password="test")
-        member = Member(user=user, board=board, last_reset=datetime.now())
-        serialized_board = BoardSerializer(board)
-        self.assertIn("members", serialized_board.data)
