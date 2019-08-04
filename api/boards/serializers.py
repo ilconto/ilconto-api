@@ -9,10 +9,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class BoardSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=200)
     id = serializers.IntegerField()
     title = serializers.CharField(max_length=200)
+    scores = serializers.JSONField()
+    members = UserSerializer(many=True)
 
     class Meta:
         model = Board
-        fields = ['title', 'id', "members"]
+        fields = ['title', 'id', "scores", "members"]

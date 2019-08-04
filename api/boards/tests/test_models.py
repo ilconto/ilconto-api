@@ -1,7 +1,7 @@
 from django.test import TestCase
 from datetime import datetime
 import pytz
-from ..models import Member, User, Board
+from ..models import User, Board
 from django.db.utils import IntegrityError
 
 
@@ -52,6 +52,27 @@ class TestBoardModel(TestCase):
         self.assertEqual(Board.objects.count(), 1)
         b = Board.objects.first()
         self.assertEqual(b.title, self.board_title)
+
+    def test_creates_board_with_users(self):
+        user1 = User.objects.create_user(
+            username='hello1', email='test1@test.com', password='oups')
+        user1.save()
+        user2 = User.objects.create_user(
+            username='hello2', email='test2@test.com', password='oups')
+        user2.save()
+        board = Board.objects.create_board(
+            title="board_with_members", members=[user1, user2])
+        board.save()
+        self.assertEqual(2, board.members.count())
+
+    def test_adds_member_to_board(self):
+        board = Board.objects.first()
+        self.assertEqual(0, board.members.count())
+        new_user = User.objects.create_user(
+            username='hello1', email='test1@test.com', password='oups')
+        new_user.save()
+        board.add_member(new_user)
+        self.assertEqual(1, board.members.count())
 
     def test_board_title_is_modified(self):
         b = Board.objects.first()
