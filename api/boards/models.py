@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.contrib.postgres.fields import HStoreField
 
 
 class User(AbstractUser):
@@ -10,27 +13,43 @@ class User(AbstractUser):
     class Meta(object):
         unique_together = ('email',)
 
-
-class Member(models.Model):
-    """
-    Model representing the member of a board. Linked to a user object
-    """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE)
-    name = models.CharField(max_length=20)
-    last_reset = models.DateTimeField()
-    board = models.ForeignKey(
-        'boards.Board', related_name="members", on_delete=models.CASCADE)
-
     def __str__(self):
-        return self.user.username + " - " + self.board.title
+        return f"{self.username} - {self.email}"
+
+
+class BoardManager(models.Manager):
+    """
+    See usage in docs from Board model
+    """
+
+    def create_board(self, title, members):
+        board = self.create(title=title)
+        for member in members:
+            board.scores[str(member.username)] = str(datetime.now())
+            board.members.add(member)
+        return board
 
 
 class Board(models.Model):
     """
-    Model representing a board
+    Model representing a board. Uses a manager for creation of instances. 
+    To create new board, use: Board.objects.create_board(title, members)
     """
     title = models.CharField(max_length=20)
+    members = models.ManyToManyField('boards.User', related_name='boards')
+    scores = HStoreField(default=dict, null=True, blank=True)
+    objects = BoardManager()
+
+    def add_member(self, user):
+        self.members.add(user)
+        self.scores[user.username] = datetime.now()
+        self.save()
+
+    def reset_score(self, username, last_time=None):
+        if not last_time:
+            last_time = datetime.now()
+        self.scores[username] = last_time
+        self.save()
 
     def __str__(self):
         return self.title

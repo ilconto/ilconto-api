@@ -1,7 +1,7 @@
 from django.test import TestCase
 from datetime import datetime
 import pytz
-from ..models import Member, User, Board
+from ..models import User, Board
 from django.db.utils import IntegrityError
 
 
@@ -53,6 +53,27 @@ class TestBoardModel(TestCase):
         b = Board.objects.first()
         self.assertEqual(b.title, self.board_title)
 
+    def test_creates_board_with_users(self):
+        user1 = User.objects.create_user(
+            username='hello1', email='test1@test.com', password='oups')
+        user1.save()
+        user2 = User.objects.create_user(
+            username='hello2', email='test2@test.com', password='oups')
+        user2.save()
+        board = Board.objects.create_board(
+            title="board_with_members", members=[user1, user2])
+        board.save()
+        self.assertEqual(2, board.members.count())
+
+    def test_adds_member_to_board(self):
+        board = Board.objects.first()
+        self.assertEqual(0, board.members.count())
+        new_user = User.objects.create_user(
+            username='hello1', email='test1@test.com', password='oups')
+        new_user.save()
+        board.add_member(new_user)
+        self.assertEqual(1, board.members.count())
+
     def test_board_title_is_modified(self):
         b = Board.objects.first()
         self.assertEqual(b.title, self.board_title)
@@ -64,48 +85,5 @@ class TestBoardModel(TestCase):
         b.title = self.board_title
         b.save()
 
-    def test_adds_member_to_board(self):
-        user1 = User.objects.create_user(
-            username="paul", email="test@example.com", password="test")
-        user1.save()
-        user2 = User.objects.create_user(
-            username="max", email="test2@example.com", password="test")
-        user2.save()
-        board = Board.objects.first()
-        member1 = Member(user=user1, name=user1.username,
-                         last_reset=datetime.now(pytz.utc), board=board)
-        member2 = Member(user=user2, name=user2.username,
-                         last_reset=datetime.now(pytz.utc), board=board)
-        member1.save()
-        member2.save()
-        an_other_board = Board(title="an other board")
-        an_other_board.save()
-        member3 = Member(user=user1, name=user1.username,
-                         last_reset=datetime.now(pytz.utc), board=an_other_board)
-        member3.save()
-        self.assertEqual(Member.objects.filter(board=board).count(), 2)
-        self.assertEqual(Member.objects.filter(
-            board=an_other_board).count(), 1)
-
-
-class TestMemberModel(TestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        cls.board = Board(title="my board")
-        cls.board.save()
-        cls.user = User.objects.create_user(
-            username="john", email="test@example.com", password="oups")
-        cls.user.save()
-
-    def test_creates_member(self):
-        m = Member(user=self.user, name="john",
-                   last_reset=datetime.now(pytz.utc), board=self.board)
-        m.save()
-        self.assertEqual(Member.objects.count(), 1)
-
-    def test_cannot_create_member_without_board(self):
-        with self.assertRaises(IntegrityError):
-            m = Member(user=self.user, name="john",
-                       last_reset=datetime.now(pytz.utc))
-            m.save()
+    # def test_adds_member_to_board(self):
+    #     pass
