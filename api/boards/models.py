@@ -12,18 +12,12 @@ class User(AbstractUser):
         unique_together = ('email',)
 
 
-class Member(models.Model):
-    """
-    Model representing the member of a board. Linked to a user object
-    """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE)
-    name = models.CharField(max_length=20)
-    last_reset = models.DateTimeField()
-    board = models.ForeignKey(
-        'boards.Board', related_name="members", on_delete=models.CASCADE)
 
-    def __str__(self):
+    """
+    See usage in docs from Board model
+    """
+
+    def create_board(self, title, members):
         return self.user.username + " - " + self.board.title
 
 
