@@ -16,4 +16,12 @@ class BoardSerializer(serializers.Serializer):
 
     class Meta:
         model = Board
-        fields = ['title', 'id', "scores", "members"]
+        fields = ['title', 'id', 'scores', 'members']
+
+
+class UserSerializerWithBoards(serializers.ModelSerializer):
+    boards = BoardSerializer(many=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'id', 'boards')
