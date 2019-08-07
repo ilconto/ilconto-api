@@ -14,8 +14,4 @@ class Migration(migrations.Migration):
             name='user',
             options={},
         ),
-        migrations.AlterUniqueTogether(
-            name='user',
-            unique_together={('email',)},
-        ),
     ]
