@@ -1,4 +1,6 @@
 venv
+.pytest_cache
 __pycache__
 .vscode
 .env
+\.pytest_cache/v/cache/

@@ -14,24 +14,7 @@ basePath: /v1
 
 paths:
   /boards:
-    get:
-      summary: Gets some boards
-      description: Returns a list containing all boards, with only their basic information 
-      responses:
-        200:
-          description: A list of Boards
-          schema:
-            type: array
-            items: 
-              required:
-                - id
-              properties:
-                boardId:
-                  type: integer
-                  example: 12
-                boardName:
-                  type: string
-                  example: myAwesomeBoard
+
 
     post:
       summary: Creates a board
@@ -99,6 +82,9 @@ paths:
           in: path
           required: true
           description: The user id of the member to reset
+      responses:
+        204:
+          description: Confirms the reset
           
 definitions:
   BoardInitInfo :
