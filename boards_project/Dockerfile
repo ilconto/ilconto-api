@@ -13,4 +13,4 @@ WORKDIR /code
 
 # Copy project & install dependencies
 COPY . /code/
-RUN pip install -r api/requirements.txt
+RUN pip install -r requirements.txt
