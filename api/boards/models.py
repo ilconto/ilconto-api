@@ -10,11 +10,14 @@ class User(AbstractUser):
     """
     Basic User class for boards extending the original django User class 
     """
-    class Meta(object):
-        unique_together = ('email',)
+    email = models.EmailField(max_length=256, unique=True)
+    username = models.CharField(max_length=54, unique=True)
 
     def __str__(self):
-        return f"{self.username} - {self.email}"
+        return f"{self.email}"
+
+    REQUIRED_FIELDS = ('username',)
+    USERNAME_FIELD = 'email'
 
 
 class BoardManager(models.Manager):

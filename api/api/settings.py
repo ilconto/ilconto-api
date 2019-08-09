@@ -108,7 +108,7 @@ DATABASES = {
         'NAME': config("DB_NAME"),
         'USER': config("DB_USER", default="postgres"),
         'PASSWORD': config("DB_PASSWORD", default="postgres"),
-        'HOST': config("DB_HOST", default="localhost"),
+        'HOST': config("DB_HOST", default="0.0.0.0"),
         'PORT': config("DB_PORT", default=5432),
     },
     'origin': {
@@ -122,6 +122,11 @@ DATABASES = {
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
 AUTH_USER_MODEL = 'boards.User'
+
+# django-rest-auth login settings
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True   
+ACCOUNT_USERNAME_REQUIRED = False
 
 AUTH_PASSWORD_VALIDATORS = [
     {
