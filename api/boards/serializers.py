@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Board, User, Member
+from .models import Board, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -8,20 +8,20 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'id')
 
 
-class MemberSerializer(serializers.Serializer):
-    user = UserSerializer()
-    last_reset = serializers.DateTimeField()
-
-    class Meta:
-        model = Member
-        fields = ("user", "last_reset")
-
-
 class BoardSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=200)
     id = serializers.IntegerField()
-    members = MemberSerializer(many=True, read_only=True)
+    title = serializers.CharField(max_length=200)
+    scores = serializers.JSONField()
+    members = UserSerializer(many=True)
 
     class Meta:
         model = Board
-        fields = ['title', 'id', "members"]
+        fields = ['title', 'id', 'scores', 'members']
+
+
+class UserSerializerWithBoards(serializers.ModelSerializer):
+    boards = BoardSerializer(many=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'id', 'boards')

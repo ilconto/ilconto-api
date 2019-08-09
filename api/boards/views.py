@@ -1,19 +1,23 @@
 from rest_framework.views import APIView
-from .models import Board
-from .serializers import BoardSerializer
+from rest_framework import generics, permissions
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
 
 
-class BoardView(APIView):
-
-    def get(self, request, pk):
-        board = Board.objects.get(pk=pk)
-        serializer = BoardSerializer(board)
-        response = Response(serializer.data)
-        return response
+from .models import Board, User
+from .serializers import BoardSerializer, UserSerializerWithBoards
+from .permissions import IsBoardMember, IsCurrentUser
 
 
-class ProfileView(APIView):
+class BoardDetails(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsBoardMember,)
+    queryset = Board.objects.all()
+    serializer_class = BoardSerializer
 
-    def get(self, request):
-        pass
+
+class UserProfile(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, format=None):
+        return Response(UserSerializerWithBoards(request.user).data)
