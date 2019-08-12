@@ -27,24 +27,25 @@ class BoardSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         members_data = validated_data.pop('members')
+        scores_data = validated_data.pop('scores')
         board = Board.objects.create(**validated_data)
+        board.save()
 
         if self.context['request'].user not in members_data:
             user = self.context['request'].user
-            board.members.add(user)
-            board.scores[user.email] = validated_data['scores'].get(user.email, datetime.now().timestamp())
+            board.add_member(user)
+            board.reset_score(user.email, validated_data['scores'].get(user.email, datetime.now()))
 
         for member in members_data:
             try:
                 email = member['email']
                 user = User.objects.get(email=email)
-                board.members.add(user)
-                board.scores[email] = validated_data['scores'].get(email, datetime.now())
+                board.add_member(user)
+                board.reset_score(email, validated_data['scores'].get(email, datetime.now()))
             except User.DoesNotExist:
                 # That's where we'll implement the email to non-existing members feature
                 pass
-        
-        board.save()
+    
         return board
 
 
