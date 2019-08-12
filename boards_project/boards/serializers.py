@@ -8,15 +8,21 @@ from .models import Board, User
 class UserSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     username = serializers.CharField(max_length=256, required=False)
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        help_text='Leave empty if no change needed',
+        style={'input_type': 'password', 'placeholder': 'Password'}
+    )
     email = serializers.EmailField(max_length=256, required=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'id')
+        fields = ('username', 'email', 'id', 'password')
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(read_only=True)
+    id = serializers.UUIDField(read_only=True)
     title = serializers.CharField(max_length=200)
     scores = serializers.JSONField()
     members = UserSerializer(many=True)

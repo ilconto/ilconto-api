@@ -14,14 +14,14 @@ class TestUserModel(TestCase):
             'email': 'test@test.com',
             'password': 'testpassword123'
         }
-        superuser_data = {
+        cls.superuser_data = {
             'username': 'supertesteur',
             'email': 'supertest@test.com',
             'password': 'testpassword123'
         }
         u = User.objects.create_user(**cls.user_data)
         u.save()
-        super_u = User.objects.create_superuser(**superuser_data)
+        super_u = User.objects.create_superuser(**cls.superuser_data)
         super_u.save()
 
     def test_user_is_created(self):
@@ -30,6 +30,16 @@ class TestUserModel(TestCase):
         self.assertEqual(u.email, self.user_data['email'])
         self.assertFalse(u.check_password('wrong password'))
         self.assertTrue(u.check_password(self.user_data['password']))
+        self.assertFalse(u.is_staff)
+        self.assertFalse(u.is_superuser)
+    
+    def test_superuser_is_created(self):
+        super_u = User.objects.get(email=self.superuser_data['email'])
+        self.assertEqual(super_u.username, self.superuser_data['username'])
+        self.assertEqual(super_u.email, self.superuser_data['email'])
+        self.assertFalse(super_u.check_password('wrong password'))
+        self.assertTrue(super_u.check_password(self.superuser_data['password']))
+        self.assertTrue(super_u.is_superuser)
 
     def test_cannot_create_with_same_email(self):
         with self.assertRaises(IntegrityError):
@@ -114,6 +124,41 @@ class TestBoardModel(TestCase):
         board.add_member(user1)
         self.assertEqual(1, board.members.count())
         self.assertIn(user1.email, board.scores.keys())
+        board.remove_member(user1)
+
+    def test_cannot_add_same_member_twice(self):
+        """
+        Adds a member to the board, checks if adding him a second time raises a ValueError
+        Then, deletes it to reset state
+        """
+        board = Board.objects.get(id=self.board_id)
+        user1 = User.objects.get(email=self.user_data1['email'])
+        self.assertEqual(0, board.members.count())
+        board.add_member(user1)
+        with self.assertRaises(ValueError):
+            board.add_member(user1)
+        board.remove_member(user1)
+
+    def test_member_is_removed(self):
+        """
+        Add a member to the board, removes it, then checks if it is removed from members list and scores
+        """
+        board = Board.objects.get(id=self.board_id)
+        user1 = User.objects.get(email=self.user_data1['email'])
+        board.add_member(user1)
+        self.assertEqual(1, board.members.count())
+        board.remove_member(user1)
+        self.assertEqual(0, board.members.count())
+        self.assertNotIn(user1.email, board.scores.keys())
+
+    def test_cannot_remove_unexitsting_member(self):
+        """
+        Checkf if removing a member not registered as board member raises a ValueError
+        """
+        board = Board.objects.get(id=self.board_id)
+        user1 = User.objects.get(email=self.user_data1['email'])
+        with self.assertRaises(ValueError):
+            board.remove_member(user1)
 
     def test_member_is_removed(self):
         """

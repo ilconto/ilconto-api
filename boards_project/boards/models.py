@@ -10,6 +10,7 @@ class User(AbstractUser):
     """
     Basic User class for boards extending the original django User class 
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(max_length=256, unique=True)
     username = models.CharField(max_length=54, unique=True)
 
