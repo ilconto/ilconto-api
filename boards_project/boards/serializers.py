@@ -8,17 +8,11 @@ from .models import Board, User
 class UserSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     username = serializers.CharField(max_length=256, required=False)
-    password = serializers.CharField(
-        write_only=True,
-        required=True,
-        help_text='Leave empty if no change needed',
-        style={'input_type': 'password', 'placeholder': 'Password'}
-    )
     email = serializers.EmailField(max_length=256, required=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'id', 'password')
+        fields = ('username', 'email', 'id')
 
 
 class BoardSerializer(serializers.ModelSerializer):
@@ -40,14 +34,14 @@ class BoardSerializer(serializers.ModelSerializer):
         if self.context['request'].user not in members_data:
             user = self.context['request'].user
             board.add_member(user)
-            board.reset_score(user.email, validated_data['scores'].get(user.email, datetime.now()))
+            board.reset_score(user.email, scores_data.get(user.email, datetime.now()))
 
         for member in members_data:
             try:
                 email = member['email']
                 user = User.objects.get(email=email)
                 board.add_member(user)
-                board.reset_score(email, validated_data['scores'].get(email, datetime.now()))
+                board.reset_score(email, scores_data.get(email, datetime.now()))
             except User.DoesNotExist:
                 # That's where we'll implement the email to non-existing members feature
                 pass
