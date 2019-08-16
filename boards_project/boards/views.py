@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 
 from .models import Board, User
-from .serializers import BoardSerializer, UserSerializerWithBoards
+from .serializers import BoardSerializer, UserSerializer
 from .permissions import IsBoardMember, IsCurrentUser
 
 
@@ -35,4 +35,4 @@ class UserProfileView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None):
-        return Response(UserSerializerWithBoards(request.user).data)
+        return Response(UserSerializer(request.user).data)
