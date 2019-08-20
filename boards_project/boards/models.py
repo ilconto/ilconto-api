@@ -52,4 +52,4 @@ class Board(models.Model):
         self.save()
 
     def __str__(self):
-        return self.title
+        return "-".join([self.title, str(self.id)])
