@@ -1,12 +1,14 @@
-from datetime import datetime
+# Core imports
+import datetime
 import uuid
+
+# Django dependencies
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.contrib.postgres.fields import HStoreField
 
 
-class User(AbstractUser):
+class AppUser(AbstractUser):
     """
     Basic User class for boards extending the original django User class 
     """
@@ -14,42 +16,62 @@ class User(AbstractUser):
     email = models.EmailField(max_length=256, unique=True)
     username = models.CharField(max_length=54, unique=True)
 
+    REQUIRED_FIELDS = ('username',)
+    USERNAME_FIELD = 'email'
+
     def __str__(self):
         return f"{self.email}"
 
-    REQUIRED_FIELDS = ('username',)
-    USERNAME_FIELD = 'email'
+
+class BoardMember(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    username = models.CharField(max_length=32)
+    score = models.IntegerField()
+    user = models.ForeignKey('boards.AppUser', on_delete=models.CASCADE, related_name='memberships')
+    board = models.ForeignKey('boards.Board', on_delete=models.CASCADE, related_name='members')
+
+    def __str__(self):
+        return f'{self.username} ({self.user.email})'
 
 
 class Board(models.Model):
     """
-    Model representing a board. Uses a manager for creation of instances. 
-    To create new board, use: Board.objects.create_board(title, members)
+    Model representing a board.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=20)
-    members = models.ManyToManyField('boards.User', related_name='boards')
-    scores = HStoreField(default=dict, null=True, blank=True)
+    title = models.CharField(max_length=256)
 
-    def add_member(self, user):
-        if user in self.members.all():
-            raise ValueError(f'Member {user.email} already exists')
-        self.members.add(user)
-        self.scores[user.email] = datetime.now()
-        self.save()
+    def add_member(self, member_username, user_id, score=None):
+        user = AppUser.objects.get(id=user_id)
 
-    def remove_member(self, user):
-        if user not in self.members.all():
-            raise ValueError(f'Member {user.email} does not belong to this board')
-        self.members.remove(user)
-        del self.scores[user.email]
-        self.save()
+        if self.members.filter(user=user).exists():
+            raise Exception(f'User {user} already exists in this board')
 
-    def reset_score(self, email, last_time=None):
-        if last_time is None:
-            last_time = datetime.now()
-        self.scores[email] = last_time
-        self.save()
+        if score is None:
+            score = int(datetime.datetime.utcnow().timestamp())
+        
+        member = BoardMember.objects.create(
+            username = member_username,
+            score = score,
+            user = user,
+            board = self
+        )
+        self.members.add(member)
+        return member
+
+    def remove_member(self, member_id):
+        member = self.members.get(id=member_id)
+        id = member.id
+        member.delete()
+        return id
+
+    def reset_score(self, member_id, score=None):
+        member = self.members.get(id=member_id)
+        if score is None:
+            score = int(datetime.datetime.utcnow().timestamp())
+        member.score = score
+        member.save()
+        return member
 
     def __str__(self):
         return "-".join([self.title, str(self.id)])

@@ -10,14 +10,13 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.shortcuts import get_object_or_404
 
 
-from .models import Board, User
+from .models import Board, AppUser, BoardMember
 from .serializers import (
     BoardSerializer,
-    BoardPartialSerializer,
-    UserSerializer,
+    AppUserSerializer,
     MemberSerializer,
 )
-from .permissions import IsBoardMember, IsCurrentUser
+from .permissions import IsBoardMember
 
 
 """ ===============================
@@ -37,10 +36,11 @@ class ListCreateBoardsView(generics.ListCreateAPIView):
         if self.request.user.is_staff:
             return Board.objects.all()
         else:
-            return self.request.user.boards.all()
+            board_ids = [item.board_id for item in self.request.user.memberships.all()]
+            return Board.objects.filter(id__in=board_ids)
 
 
-class  RetrieveUpdateDeleteBoardsView(generics.RetrieveUpdateDestroyAPIView):
+class RetrieveUpdateDeleteBoardsView(generics.RetrieveUpdateDestroyAPIView):
     """
     This view deals with retrieving a board and deleting it, as well as basic
     updates (title). For updating board members, a custom view is used.
@@ -57,9 +57,8 @@ class  RetrieveUpdateDeleteBoardsView(generics.RetrieveUpdateDestroyAPIView):
 
 class ListCreateBoardMembersView(generics.ListCreateAPIView):
     """
-    This views deals with adding and listing board members
+    This view deals with adding and listing board members
     """
-
     permission_classes = (IsBoardMember,)
     serializer_class = MemberSerializer
     
@@ -68,33 +67,18 @@ class ListCreateBoardMembersView(generics.ListCreateAPIView):
         board = get_object_or_404(Board.objects.all(), id=board_id)
         return board.members.all()
 
-
     def create(self, request, board_id):
+        # Retrieves the board where the new member is to be added
+        board_id = self.kwargs['board_id']
         board = get_object_or_404(Board.objects.all(), id=board_id)
-        board_members = board.members.all()
 
-        serialized_user = UserSerializer(data=request.data['user'])
-        score = request.data.get('scores', datetime.now())
+        # Retrieves user infos
+        user_id = request.data['user']
+        username = request.data.get('username', AppUser.objects.get(id=user_id).username)
+        score = request.data.get('score', None)
 
-        if serialized_user.is_valid():
-            new_member = serialized_user.validated_data
-            try:
-                email = new_member['email']
-                user = User.objects.get(email=email)
-                board.add_member(user)
-                board.reset_score(email, score)
-            except User.DoesNotExist:
-                # That's where we'll implement the email to non-existing members feature
-                # @TODO: Implement it !
-                pass
-        else:
-            pass
-
-        return Response({
-            "id": user.id,
-            "email": user.email,
-            "score": score
-        })
+        member = board.add_member(username, user_id, score)
+        return Response(MemberSerializer(member).data)
 
 
 class RetrieveUpdateDeleteBoardMembersView(generics.RetrieveUpdateDestroyAPIView):
@@ -102,45 +86,33 @@ class RetrieveUpdateDeleteBoardMembersView(generics.RetrieveUpdateDestroyAPIView
     This view deals with retrieving a member infos, updating it's score, or deleting it
     """
     permission_classes = (IsBoardMember,)
-    serializer_class = UserSerializer
-    
-    def retrieve(self, request, board_id, member_id):
+    serializer_class = MemberSerializer
+
+    def get_queryset(self):
+        board_id = self.kwargs['board_id']
         board = get_object_or_404(Board.objects.all(), id=board_id)
-        board_member = get_object_or_404(board.members.all(), id=member_id)
-        
-        return Response({
-            "member_details": MemberSerializer(board_member).data,
-            "score": board.scores[board_member.email]
-        })
+        return board.members.all()
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        member_id = self.kwargs['member_id']
+        member = get_object_or_404(queryset, id=member_id)
+        return member
 
     def update(self, request, board_id, member_id):
-        board = get_object_or_404(Board.objects.all(), id=board_id)
-        board_member = get_object_or_404(board.members.all(), id=member_id)
+        member = self.get_object()
 
-        ts = request.data.get('timestamp', datetime.timestamp(datetime.now()))
-        score = datetime.fromtimestamp(ts)
-        board.reset_score(board_member, score)
+        if 'score' in request.data:
+            member.score = request.data['score']
+        
+        if 'username' in request.data:
+            member.username = request.data['username']
 
-        return Response({
-            "id": board_member.id,
-            "email": board_member.email,
-            "score": score
-        })
+        member.save()
+        return Response(MemberSerializer(member).data)
+
 
     def delete(self, request, board_id, member_id):
-        board = get_object_or_404(Board.objects.all(), id=board_id)
-        board_member = get_object_or_404(board.members.all(), id=member_id)
-
-        board.remove_member(board_member)
-
-        return Response({
-            "id": board_member.id
-        })
-
-
-
-class UserProfileView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request, format=None):
-        return Response(UserSerializer(request.user).data)
+        board = Board.objects.get(id=board_id)
+        id = board.remove_member(member_id)
+        return Response(f'Succesfully deleted member {id}')
