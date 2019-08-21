@@ -31,7 +31,7 @@ class BoardMember(models.Model):
     board = models.ForeignKey('boards.Board', on_delete=models.CASCADE, related_name='members')
 
     def __str__(self):
-        return f'{self.username} ({self.email})'
+        return f'{self.username} ({self.user.email})'
 
 
 class Board(models.Model):

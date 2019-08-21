@@ -16,7 +16,7 @@ from .serializers import (
     AppUserSerializer,
     MemberSerializer,
 )
-from .permissions import IsBoardMember, IsCurrentUser
+from .permissions import IsBoardMember
 
 
 """ ===============================
@@ -59,7 +59,6 @@ class ListCreateBoardMembersView(generics.ListCreateAPIView):
     """
     This view deals with adding and listing board members
     """
-
     permission_classes = (IsBoardMember,)
     serializer_class = MemberSerializer
     
@@ -69,7 +68,17 @@ class ListCreateBoardMembersView(generics.ListCreateAPIView):
         return board.members.all()
 
     def create(self, request, board_id):
-        pass
+        # Retrieves the board where the new member is to be added
+        board_id = self.kwargs['board_id']
+        board = get_object_or_404(Board.objects.all(), id=board_id)
+
+        # Retrieves user infos
+        user_id = request.data['user']
+        username = request.data.get('username', AppUser.objects.get(id=user_id).username)
+        score = request.data.get('score', None)
+
+        member = board.add_member(username, user_id, score)
+        return Response(MemberSerializer(member).data)
 
 
 class RetrieveUpdateDeleteBoardMembersView(generics.RetrieveUpdateDestroyAPIView):
@@ -77,19 +86,33 @@ class RetrieveUpdateDeleteBoardMembersView(generics.RetrieveUpdateDestroyAPIView
     This view deals with retrieving a member infos, updating it's score, or deleting it
     """
     permission_classes = (IsBoardMember,)
-    serializer_class = AppUserSerializer
-    
-    def retrieve(self, request, board_id, member_id):
-        pass
+    serializer_class = MemberSerializer
+
+    def get_queryset(self):
+        board_id = self.kwargs['board_id']
+        board = get_object_or_404(Board.objects.all(), id=board_id)
+        return board.members.all()
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        member_id = self.kwargs['member_id']
+        member = get_object_or_404(queryset, id=member_id)
+        return member
 
     def update(self, request, board_id, member_id):
-        pass
+        member = self.get_object()
+
+        if 'score' in request.data:
+            member.score = request.data['score']
+        
+        if 'username' in request.data:
+            member.username = request.data['username']
+
+        member.save()
+        return Response(MemberSerializer(member).data)
+
 
     def delete(self, request, board_id, member_id):
-        pass
-
-
-class RetrieveAppUserView(generics.RetrieveAPIView):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = AppUserSerializer
-    queryset = AppUser.objects.all()
+        board = Board.objects.get(id=board_id)
+        id = board.remove_member(member_id)
+        return Response(f'Succesfully deleted member {id}')

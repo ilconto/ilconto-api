@@ -4,7 +4,6 @@ from .views import (
     RetrieveUpdateDeleteBoardsView,
     ListCreateBoardMembersView,
     RetrieveUpdateDeleteBoardMembersView,
-    RetrieveAppUserView,
 )
 from rest_auth.views import UserDetailsView
 from .models import Board

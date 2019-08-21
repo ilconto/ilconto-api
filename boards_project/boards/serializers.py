@@ -24,7 +24,7 @@ class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = BoardMember
         fields = ('id', 'board', 'user', 'username', 'score')
-        read_only_fields = ('id', 'board', 'user',)
+        read_only_fields = ('id', 'board',)
 
 
 class BoardSerializer(serializers.ModelSerializer):
