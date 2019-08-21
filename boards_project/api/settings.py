@@ -134,12 +134,15 @@ else :
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
-AUTH_USER_MODEL = 'boards.User'
+AUTH_USER_MODEL = 'boards.AppUser'
 
 # django-rest-auth login settings
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True   
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = True
+REST_AUTH_SERIALIZERS = {
+    'USER_DETAILS_SERIALIZER': 'boards.serializers.AppUserSerializer',
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {

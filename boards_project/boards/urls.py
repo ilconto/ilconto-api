@@ -4,8 +4,9 @@ from .views import (
     RetrieveUpdateDeleteBoardsView,
     ListCreateBoardMembersView,
     RetrieveUpdateDeleteBoardMembersView,
-    UserProfileView,
+    RetrieveAppUserView,
 )
+from rest_auth.views import UserDetailsView
 from .models import Board
 
 
@@ -14,5 +15,5 @@ urlpatterns = [
     path("boards/<uuid:board_id>/", RetrieveUpdateDeleteBoardsView.as_view(), name='board_details'),
     path("boards/<uuid:board_id>/members/", ListCreateBoardMembersView.as_view(), name='board_members'),
     path("boards/<uuid:board_id>/members/<uuid:member_id>", RetrieveUpdateDeleteBoardMembersView.as_view(), name='board_member_details'),
-    path("profile/", UserProfileView.as_view(), name='user_profile'),
+    path("profile/", UserDetailsView.as_view(), name='user_profile'),
 ]
