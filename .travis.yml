@@ -1,0 +1,31 @@
+dist: bionic
+language: python
+
+python:
+  - "3.7"
+
+services:
+  - postgresql
+addons:
+  postgresql: "11.2"
+
+
+env:
+  - DB=postgres PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get --yes remove postgresql\*
+  - sudo apt-get install -y postgresql-11 postgresql-client-11
+  - sudo cp /etc/postgresql/{9.6,11}/main/pg_hba.conf
+  - sudo service postgresql restart 11
+
+install:
+  - pip install -r boards_project/requirements.txt
+
+before_script:
+  - psql --version
+  - psql -c 'CREATE DATABASE ilcontodb;' -U postgres
+
+script:
+  - python boards_project/manage.py test
