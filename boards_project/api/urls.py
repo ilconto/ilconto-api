@@ -10,5 +10,5 @@ urlpatterns = [
     path('api/v1/rest-auth/', include('rest_auth.urls')),
     path('api/v1/rest-auth/registration/', include('rest_auth.registration.urls')),
     path('api/v1/rest-auth/account-confirm-email/', VerifyEmailView.as_view(), name='account_email_verification_sent'),
-    path('api/v1/rest-auth/account-confirm-email/<key>', VerifyEmailView.as_view(), name='account_confirm_email'),
+    path('api/v1/rest-auth/account-confirm-email/<key>/', VerifyEmailView.as_view(), name='account_confirm_email'),
 ]
