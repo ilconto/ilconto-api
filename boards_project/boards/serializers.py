@@ -12,9 +12,9 @@ class AppUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AppUser
-        fields = ('username', 'email', 'id', 'memberships')
+        fields = ('username', 'email', 'id', 'memberships', 'email_verified')
         required_fields = ('username', 'email',)
-        read_only_fields = ('id', 'memberships', 'email',)
+        read_only_fields = ('id', 'memberships', 'email', 'email_verified')
         depth = 1
 
 
