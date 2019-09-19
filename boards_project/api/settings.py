@@ -139,6 +139,8 @@ AUTH_USER_MODEL = 'boards.AppUser'
 # django-rest-auth login settings
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_USERNAME_REQUIRED = True
 REST_AUTH_SERIALIZERS = {
     'USER_DETAILS_SERIALIZER': 'boards.serializers.AppUserSerializer',
@@ -179,7 +181,15 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 465
+# EMAIL_HOST_USER = config.get('EMAIL_APP_ADDRESS')
+# EMAIL_HOST_PASSWORD = config.get('EMAIL_APP_PWD')
+# EMAIL_USE_SSL = True
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# EMAIL_FROM = EMAIL_HOST_USER
+# EMAIL_SUBJECT_PREFIX = '[Ilconto] '
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 SITE_ID = 1
