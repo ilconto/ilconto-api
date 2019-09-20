@@ -1,6 +1,7 @@
 from rest_framework import permissions
 from boards.models import Board, BoardMember
 
+
 class IsBoardMember(permissions.BasePermission):
 
     def has_permission(self, request, view):
@@ -14,3 +15,15 @@ class IsBoardMember(permissions.BasePermission):
             print(request.user, obj.user)
             return request.user == obj.user
         return True
+
+
+class IsActivated(permissions.BasePermission):
+    
+    def has_permission(self, request, view):
+        return request.user and request.user.is_activated
+
+
+class HasEmailVerified(permissions.BasePermission):
+    
+    def has_permission(self, request, view):
+        return request.user and request.user.email_verified

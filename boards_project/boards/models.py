@@ -16,6 +16,7 @@ class AppUser(AbstractUser):
     email = models.EmailField(max_length=256, unique=True)
     username = models.CharField(max_length=54, unique=True)
     email_verified = models.BooleanField(default=False)
+    is_activated = models.BooleanField(default=True)
 
     REQUIRED_FIELDS = ('username',)
     USERNAME_FIELD = 'email'

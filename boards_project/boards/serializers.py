@@ -12,9 +12,9 @@ class AppUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AppUser
-        fields = ('username', 'email', 'id', 'memberships', 'email_verified')
+        fields = ('username', 'email', 'id', 'memberships', 'email_verified', 'is_activated')
         required_fields = ('username', 'email',)
-        read_only_fields = ('id', 'memberships', 'email', 'email_verified')
+        read_only_fields = ('id', 'memberships', 'email', 'email_verified', 'is_activated')
         depth = 1
 
 
@@ -23,8 +23,8 @@ class MemberAppUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AppUser
-        fields = ('email', 'email_verified')
-        read_only_fields = ('email', 'email_verified')
+        fields = ('email', 'email_verified', 'is_activated')
+        read_only_fields = ('email', 'email_verified', 'is_activated')
 
 
 class MemberSerializer(serializers.ModelSerializer):
@@ -91,6 +91,17 @@ class BoardSerializer(serializers.ModelSerializer):
             except AppUser.DoesNotExist:
                 # That's where we'll implement the email to non-existing members feature
                 # @TODO: Implement it !
+
+                new_user = {
+                    "email": member_data['user']['email'],
+                    "username": member_data['user']['email'],
+                    "is_activated": False
+                }
+                created_user = AppUser.objects.create_user(**new_user)
+                username = member_data.get('username', created_user.email)
+                member = board.add_member(username, created_user.id)
+                board.reset_score(member.id, member_data.get('score', int(datetime.utcnow().timestamp())))
+
                 # send_mail(
                 #     f'You\'ve been invited to join the board {board.title}',
                 #     f'Hello,\nYou\'ve been invited by user {self.context["request"].user.email} to join him on Ilconto !\nPlease validate your email adress to get started',
