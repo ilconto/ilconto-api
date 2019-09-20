@@ -18,28 +18,34 @@ class AppUserSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class MemberAppUserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=256)
+
+    class Meta:
+        model = AppUser
+        fields = ('email', 'email_verified')
+        read_only_fields = ('email', 'email_verified')
+
+
 class MemberSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=256, required=True)
+    username = serializers.CharField(max_length=256, required=False)
     score = serializers.IntegerField(required=False)
+    user = MemberAppUserSerializer()
     
     class Meta:
         model = BoardMember
         fields = ('id', 'board', 'user', 'username', 'score')
-        read_only_fields = ('id', 'board',)
+        read_only_fields = ('id', 'board', 'user')
+        depth = 1
 
 
 class BoardSerializer(serializers.ModelSerializer):
+    members = MemberSerializer(many=True)
     class Meta:
         model = Board
         fields = ('id', 'title', 'members')
         read_only_fields = ('id',)
         depth = 1
-
-    def validate(self, data):
-        validated_data = data.copy()
-        validated_data['members'] = self.initial_data.get('members', [])
-
-        return validated_data
 
     def create(self, validated_data):
         """
@@ -61,7 +67,7 @@ class BoardSerializer(serializers.ModelSerializer):
         if self.context['request'].user not in members_data:
             # Retrieve user infos
             user = self.context['request'].user
-            filtered_members_data = [item for item in members_data if item['email'] == user.email]
+            filtered_members_data = [item for item in members_data if item['user']['email'] == user.email]
 
             # Deals with the case where the request body does not provide information on it's score or username
             if len(filtered_members_data) == 0:
@@ -78,7 +84,7 @@ class BoardSerializer(serializers.ModelSerializer):
         # Add the other members to the board
         for member_data in members_data:
             try:
-                user = AppUser.objects.get(email=member_data['email'])
+                user = AppUser.objects.get(email=member_data['user']['email'])
                 username = member_data.get('username', user.username)
                 member = board.add_member(username, user.id)
                 board.reset_score(member.id, member_data.get('score', int(datetime.utcnow().timestamp())))

@@ -105,6 +105,7 @@ class RetrieveUpdateDeleteBoardMembersView(generics.RetrieveUpdateDestroyAPIView
 
     def update(self, request, board_id, member_id):
         member = self.get_object()
+        self.check_object_permissions(request, member)
 
         if 'score' in request.data:
             member.score = request.data['score']
