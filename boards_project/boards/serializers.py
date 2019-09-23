@@ -10,18 +10,6 @@ from boards.utils import random_string
 from decouple import config
 
 
-class AppUserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=256)
-    email = serializers.EmailField(max_length=256)
-
-    class Meta:
-        model = AppUser
-        fields = ('username', 'email', 'id', 'memberships', 'email_verified', 'is_activated')
-        required_fields = ('username', 'email',)
-        read_only_fields = ('id', 'memberships', 'email', 'email_verified', 'is_activated')
-        depth = 1
-
-
 class MemberAppUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=256)
 
@@ -31,15 +19,36 @@ class MemberAppUserSerializer(serializers.ModelSerializer):
         read_only_fields = ('email', 'email_verified', 'is_activated')
 
 
+class MemberBoardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Board
+        fields = ('id', 'title')
+        read_only_fields = ('id', 'title')
+
+
 class MemberSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=256, required=False)
     score = serializers.IntegerField(required=False)
     user = MemberAppUserSerializer()
+    board = MemberBoardSerializer()
     
     class Meta:
         model = BoardMember
         fields = ('id', 'board', 'user', 'username', 'score')
         read_only_fields = ('id', 'board', 'user')
+        depth = 1
+
+
+class AppUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=256)
+    email = serializers.EmailField(max_length=256)
+    memberships = MemberSerializer(many=True)
+
+    class Meta:
+        model = AppUser
+        fields = ('username', 'email', 'id', 'memberships', 'email_verified', 'is_activated')
+        required_fields = ('username', 'email',)
+        read_only_fields = ('id', 'memberships', 'email', 'email_verified', 'is_activated')
         depth = 1
 
 
