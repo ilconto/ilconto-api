@@ -1,10 +1,14 @@
 from datetime import datetime
-import json
 
 from rest_framework import serializers
 from .models import Board, AppUser, BoardMember
 
 from django.core.mail import send_mail
+from django.template import loader
+
+from boards.utils import random_string
+from decouple import config
+
 
 class AppUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=256)
@@ -95,20 +99,31 @@ class BoardSerializer(serializers.ModelSerializer):
                 new_user = {
                     "email": member_data['user']['email'],
                     "username": member_data['user']['email'],
-                    "is_activated": False
+                    "is_activated": False,
+                    "activation_hash": random_string()
                 }
                 created_user = AppUser.objects.create_user(**new_user)
                 username = member_data.get('username', created_user.email)
                 member = board.add_member(username, created_user.id)
                 board.reset_score(member.id, member_data.get('score', int(datetime.utcnow().timestamp())))
 
-                # send_mail(
-                #     f'You\'ve been invited to join the board {board.title}',
-                #     f'Hello,\nYou\'ve been invited by user {self.context["request"].user.email} to join him on Ilconto !\nPlease validate your email adress to get started',
-                #     'ilcontoapp@gmail.com',
-                #     ['lecanu.maxence@gmail.com'],
-                #     fail_silently=False,
-                # )
+                activation_url = f'{config("FRONT_APP_URL", default="localhost:8080")}/activate/{created_user.id}?hash={created_user.activation_hash}'
+                html_message = loader.render_to_string(
+                    '../templates/activate_email.html',
+                    {
+                        "board_title": board.title,
+                        "sender_email": self.context['request'].user.email,
+                        "activation_link": activation_url
+                    }
+                )
+                send_mail(
+                    f'You\'ve been invited to join the board {board.title}',
+                    message="test email",
+                    from_email='ilcontoapp@gmail.com',
+                    recipient_list=["lecanu.maxence@gmail.com"],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
                 pass
 
         return board

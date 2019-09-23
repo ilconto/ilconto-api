@@ -58,7 +58,7 @@ class MembershipsInline(admin.TabularInline):
 
 @admin.register(AppUser)
 class AppUserAdmin(admin.ModelAdmin):
-  list_display = ['username', 'email', 'email_verified', 'is_activated', 'id']
-  fields = ('id', 'username', 'email', 'email_verified', 'is_activated')
-  readonly_fields = ['id', 'email', 'is_activated']
+  list_display = ['username', 'email', 'email_verified', 'is_activated', 'created_at', 'id']
+  fields = ('id', 'username', 'email', 'email_verified', 'is_activated', 'activation_hash', 'created_at',)
+  readonly_fields = ['id', 'email', 'is_activated', 'activation_hash']
   inlines = [MembershipsInline]

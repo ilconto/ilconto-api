@@ -17,6 +17,9 @@ class AppUser(AbstractUser):
     username = models.CharField(max_length=54, unique=True)
     email_verified = models.BooleanField(default=False)
     is_activated = models.BooleanField(default=True)
+    activation_hash = models.CharField(editable=False, max_length=20, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     REQUIRED_FIELDS = ('username',)
     USERNAME_FIELD = 'email'
@@ -31,6 +34,8 @@ class BoardMember(models.Model):
     score = models.IntegerField()
     user = models.ForeignKey('boards.AppUser', on_delete=models.CASCADE, related_name='memberships')
     board = models.ForeignKey('boards.Board', on_delete=models.CASCADE, related_name='members')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f'{self.username} ({self.user.email})'
@@ -42,6 +47,8 @@ class Board(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=256)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def add_member(self, member_username, user_id, score=None):
         user = AppUser.objects.get(id=user_id)
