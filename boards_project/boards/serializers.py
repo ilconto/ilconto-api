@@ -30,7 +30,7 @@ class MemberSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=256, required=False)
     score = serializers.IntegerField(required=False)
     user = MemberAppUserSerializer()
-    board = MemberBoardSerializer()
+    board = MemberBoardSerializer(required=False)
     
     class Meta:
         model = BoardMember
