@@ -6,9 +6,9 @@ class IsBoardMember(permissions.BasePermission):
 
     def has_permission(self, request, view):
         board_id = request.parser_context['kwargs']['board_id']
-        member_id = request.parser_context['kwargs']['member_id']
+        user_id = request.user.id
         board = Board.objects.get(id=board_id)
-        return member_id in [member.id for member in board.members.all()]
+        return user_id in [member.user.id for member in board.members.all()]
 
     def has_object_permission(self, request, view, obj):
         if request.method in ('PUT', 'DELETE'):

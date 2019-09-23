@@ -50,12 +50,10 @@ class RetrieveUpdateDeleteBoardsView(generics.RetrieveUpdateDestroyAPIView):
     """
     permission_classes = (IsBoardMember,)
     queryset = Board.objects.all()
-
-    def get_serializer_class(self):
-        if self.request.method in ('PUT',):
-            return BoardPartialSerializer
-        else:
-            return BoardSerializer
+    serializer_class = BoardSerializer
+    
+    def get_object(self):
+        return get_object_or_404(Board.objects.all(), id=self.kwargs['board_id'])
 
 
 class ListCreateBoardMembersView(generics.ListCreateAPIView):
