@@ -21,9 +21,9 @@ class BoardMemberInline(admin.TabularInline):
 
 
 class BoardAdmin(admin.ModelAdmin):
-  list_display = ['id', 'title']
-  fields = ('id', 'title',)
-  readonly_fields = ['id',]
+  list_display = ['id', 'title', 'created_at']
+  fields = ('id', 'title', 'created_at')
+  readonly_fields = ['id', 'created_at']
   inlines = [BoardMemberInline]
 
 admin.site.register(Board, BoardAdmin)
@@ -55,10 +55,11 @@ class MembershipsInline(admin.TabularInline):
 
   def get_extra(self, request, obj=None, **kwargs):
     return 0
+    
 
 @admin.register(AppUser)
 class AppUserAdmin(admin.ModelAdmin):
   list_display = ['username', 'email', 'email_verified', 'is_activated', 'created_at', 'id']
   fields = ('id', 'username', 'email', 'email_verified', 'is_activated', 'activation_hash', 'created_at',)
-  readonly_fields = ['id', 'email', 'is_activated', 'activation_hash']
+  readonly_fields = ['id', 'email', 'is_activated', 'activation_hash', 'created_at']
   inlines = [MembershipsInline]

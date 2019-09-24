@@ -3,6 +3,7 @@ from datetime import datetime
 
 from rest_framework.views import APIView
 from rest_framework import generics
+from rest_framework import exceptions
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
@@ -16,7 +17,12 @@ from .serializers import (
     AppUserSerializer,
     MemberSerializer,
 )
-from .permissions import IsBoardMember
+from .permissions import (
+    IsBoardMember,
+    IsActivated,
+    HasEmailVerified,
+    IsInOnboarding
+)
 
 
 """ ===============================
@@ -132,3 +138,30 @@ def email_confirmed_(request, email_address, **kwargs):
     user = email_address.user
     user.email_verified = True
     user.save()
+
+
+from boards.forms import ActivateUserForm
+
+
+class ActivateUserView(APIView):
+    permission_classes = (IsInOnboarding,)
+
+    def permission_denied(self, request, message=None):
+        raise exceptions.PermissionDenied(detail=message)
+
+    def post(self, request, user_id):
+        form = ActivateUserForm(request.data)
+        
+        if form.is_valid():
+            user_id = self.kwargs['user_id']
+            user = get_object_or_404(AppUser.objects.all(), id=user_id)
+
+            user.username = form.data['username']
+            user.set_password(form.data['password1'])
+            user.is_activated = True
+            user.email_verified = True
+            user.save()
+
+            return Response(AppUserSerializer(user).data)
+        
+        return Response(form.errors.as_json())
