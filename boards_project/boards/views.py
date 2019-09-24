@@ -37,7 +37,7 @@ class ListCreateBoardsView(generics.ListCreateAPIView):
     every boards.
     Otherwise, he can only get the boards which he is a member of.
     """
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsActivated,)
     serializer_class = BoardSerializer
 
     def get_queryset(self):
@@ -54,7 +54,7 @@ class RetrieveUpdateDeleteBoardsView(generics.RetrieveUpdateDestroyAPIView):
     This view deals with retrieving a board and deleting it, as well as basic
     updates (title). For updating board members, a custom view is used.
     """
-    permission_classes = (IsBoardMember,)
+    permission_classes = (IsAuthenticated, IsActivated, IsBoardMember,)
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
     
@@ -66,7 +66,7 @@ class ListCreateBoardMembersView(generics.ListCreateAPIView):
     """
     This view deals with adding and listing board members
     """
-    permission_classes = (IsBoardMember,)
+    permission_classes = (IsAuthenticated, IsActivated, IsBoardMember,)
     serializer_class = MemberSerializer
 
     def get_queryset(self):
@@ -93,7 +93,7 @@ class RetrieveUpdateDeleteBoardMembersView(generics.RetrieveUpdateDestroyAPIView
     """
     This view deals with retrieving a member infos, updating it's score, or deleting it
     """
-    permission_classes = (IsBoardMember,)
+    permission_classes = (IsAuthenticated, IsActivated, IsBoardMember,)
     serializer_class = MemberSerializer
 
     def get_queryset(self):
@@ -144,9 +144,20 @@ from boards.forms import ActivateUserForm
 
 
 class ActivateUserView(APIView):
+    """
+    This view is used when a user is added to a board without having an account on Ilconto
+    Before he can access the content of the board, he has to go through a registration step
+    - At the board's creation, an email is sent to the non-existing user
+    - The email contains a link towards an activation page on the frontend
+    - This page hits the api server with a POST request containing the missing data for
+    creating his account, including the hash code provided in the email for checking his identity
+    - Once the post request has been received, the view cannot be used anymore by this user, preventing
+    account modification through this way.
+    """
     permission_classes = (IsInOnboarding,)
 
     def permission_denied(self, request, message=None):
+        # Do not check for authentication here
         raise exceptions.PermissionDenied(detail=message)
 
     def post(self, request, user_id):

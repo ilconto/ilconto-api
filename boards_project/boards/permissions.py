@@ -21,13 +21,15 @@ class IsBoardMember(permissions.BasePermission):
 class IsActivated(permissions.BasePermission):
     
     def has_permission(self, request, view):
-        return request.user and request.user.is_activated
+        self.message = f'The account {request.user.email} has not been activated yet'
+        return request.user.is_activated
 
 
 class HasEmailVerified(permissions.BasePermission):
     
     def has_permission(self, request, view):
-        return request.user and request.user.email_verified
+        self.message = f'The email {request.user.email} has not been verified yet'
+        return request.user.email_verified
 
 
 class IsInOnboarding(permissions.BasePermission):
