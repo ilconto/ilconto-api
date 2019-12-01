@@ -4,4 +4,4 @@ __pycache__
 .vscode
 .env
 \.pytest_cache/v/cache/
-assets
+static
