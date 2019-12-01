@@ -22,12 +22,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '*8-)+e*1**vw7ala(9^o99l*n4v7=m!&fy!$v@xzyrt$*0cm^2'
+SECRET_KEY = config('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+# SECURITY WARNING: don't run with debug turned on in production
+DEBUG = config('ENV') == 'dev'
 
 
 # Application definition
@@ -76,7 +74,15 @@ REST_FRAMEWORK = {
     ),
 }
 
-CORS_ORIGIN_ALLOW_ALL = True
+# Security settingsCSRF_COOKIE_SECURE
+if config('ENV') == 'production':
+    CORS_ORIGIN_ALLOW_ALL = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'ilconto.app', config('SERVER_IP')]
 
 ROOT_URLCONF = 'api.urls'
 
@@ -102,32 +108,16 @@ WSGI_APPLICATION = 'api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-if 'TRAVIS' not in os.environ:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config("DB_NAME"),
-            'USER': config("DB_USER", default="postgres"),
-            'PASSWORD': config("DB_PASSWORD", default="postgres"),
-            'HOST': config("DB_HOST", default="0.0.0.0"),
-            'PORT': config("DB_PORT", default=5432),
-        },
-        'origin': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
+DATABASES = {
+    'default': {
+        'ENGINE':   'django.db.backends.postgresql_psycopg2',
+        'NAME':     'ilcontodb',
+        'USER':     config('DB_USER', 'postgres'),
+        'PASSWORD': config('DB_PASSWORD', ''),
+        'HOST':     config('DB_HOST', 'db'),
+        'PORT':     '',
     }
-else :
-    DATABASES = {
-        'default': {
-            'ENGINE':   'django.db.backends.postgresql_psycopg2',
-            'NAME':     'ilcontodb',
-            'USER':     'postgres',
-            'PASSWORD': '',
-            'HOST':     'localhost',
-            'PORT':     '',
-        }
-    }
+}
 
 
 
