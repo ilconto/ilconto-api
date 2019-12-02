@@ -82,7 +82,16 @@ if config('ENV') == 'production':
     SECURE_BROWSER_XSS_FILTER = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'ilconto.app', config('SERVER_IP')]
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        '0.0.0.0',
+        'ilconto.app',
+        'www.ilconto.app',
+        'api.ilconto.app',
+        'www.api.ilconto.app',
+        config('SERVER_IP')
+    ]
 
 ROOT_URLCONF = 'api.urls'
 
