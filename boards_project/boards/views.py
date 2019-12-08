@@ -3,6 +3,7 @@ from datetime import datetime
 
 from rest_framework.views import APIView
 from rest_framework import generics
+from rest_framework import exceptions
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
@@ -16,7 +17,12 @@ from .serializers import (
     AppUserSerializer,
     MemberSerializer,
 )
-from .permissions import IsBoardMember
+from .permissions import (
+    IsBoardMember,
+    IsActivated,
+    HasEmailVerified,
+    IsInOnboarding
+)
 
 
 """ ===============================
@@ -31,7 +37,7 @@ class ListCreateBoardsView(generics.ListCreateAPIView):
     every boards.
     Otherwise, he can only get the boards which he is a member of.
     """
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsActivated,)
     serializer_class = BoardSerializer
 
     def get_queryset(self):
@@ -48,21 +54,19 @@ class RetrieveUpdateDeleteBoardsView(generics.RetrieveUpdateDestroyAPIView):
     This view deals with retrieving a board and deleting it, as well as basic
     updates (title). For updating board members, a custom view is used.
     """
-    permission_classes = (IsBoardMember,)
+    permission_classes = (IsAuthenticated, IsActivated, IsBoardMember,)
     queryset = Board.objects.all()
-
-    def get_serializer_class(self):
-        if self.request.method in ('PUT',):
-            return BoardPartialSerializer
-        else:
-            return BoardSerializer
+    serializer_class = BoardSerializer
+    
+    def get_object(self):
+        return get_object_or_404(Board.objects.all(), id=self.kwargs['board_id'])
 
 
 class ListCreateBoardMembersView(generics.ListCreateAPIView):
     """
     This view deals with adding and listing board members
     """
-    permission_classes = (IsBoardMember,)
+    permission_classes = (IsAuthenticated, IsActivated, IsBoardMember,)
     serializer_class = MemberSerializer
 
     def get_queryset(self):
@@ -89,7 +93,7 @@ class RetrieveUpdateDeleteBoardMembersView(generics.RetrieveUpdateDestroyAPIView
     """
     This view deals with retrieving a member infos, updating it's score, or deleting it
     """
-    permission_classes = (IsBoardMember,)
+    permission_classes = (IsAuthenticated, IsActivated, IsBoardMember,)
     serializer_class = MemberSerializer
 
     def get_queryset(self):
@@ -105,6 +109,7 @@ class RetrieveUpdateDeleteBoardMembersView(generics.RetrieveUpdateDestroyAPIView
 
     def update(self, request, board_id, member_id):
         member = self.get_object()
+        self.check_object_permissions(request, member)
 
         if 'score' in request.data:
             member.score = request.data['score']
@@ -119,3 +124,55 @@ class RetrieveUpdateDeleteBoardMembersView(generics.RetrieveUpdateDestroyAPIView
         board = Board.objects.get(id=board_id)
         id = board.remove_member(member_id)
         return Response(f'Succesfully deleted member {id}')
+
+
+""" ==============================================
+============ Account confirmation views ==========
+============================================== """
+
+from allauth.account.signals import email_confirmed
+from django.dispatch import receiver
+
+@receiver(email_confirmed)
+def email_confirmed_(request, email_address, **kwargs):
+    user = email_address.user
+    user.email_verified = True
+    user.save()
+
+
+from boards.forms import ActivateUserForm
+
+
+class ActivateUserView(APIView):
+    """
+    This view is used when a user is added to a board without having an account on Ilconto
+    Before he can access the content of the board, he has to go through a registration step
+    - At the board's creation, an email is sent to the non-existing user
+    - The email contains a link towards an activation page on the frontend
+    - This page hits the api server with a POST request containing the missing data for
+    creating his account, including the hash code provided in the email for checking his identity
+    - Once the post request has been received, the view cannot be used anymore by this user, preventing
+    account modification through this way.
+    """
+    permission_classes = (IsInOnboarding,)
+
+    def permission_denied(self, request, message=None):
+        # Do not check for authentication here
+        raise exceptions.PermissionDenied(detail=message)
+
+    def post(self, request, user_id):
+        form = ActivateUserForm(request.data)
+        
+        if form.is_valid():
+            user_id = self.kwargs['user_id']
+            user = get_object_or_404(AppUser.objects.all(), id=user_id)
+
+            user.username = form.data['username']
+            user.set_password(form.data['password1'])
+            user.is_activated = True
+            user.email_verified = True
+            user.save()
+
+            return Response(AppUserSerializer(user).data)
+        
+        return Response(form.errors.as_json())
