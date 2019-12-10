@@ -13,7 +13,6 @@ class IsBoardMember(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.method in ('PUT', 'DELETE'):
-            print(request.user, obj.user)
             return request.user == obj.user
         return True
 
