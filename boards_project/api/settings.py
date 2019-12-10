@@ -183,15 +183,15 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 465
-# EMAIL_HOST_USER = config('EMAIL_APP_ADDRESS')
-# EMAIL_HOST_PASSWORD = config('EMAIL_APP_PWD')
-# EMAIL_USE_SSL = True
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-# EMAIL_FROM = EMAIL_HOST_USER
-# EMAIL_SUBJECT_PREFIX = '[Ilconto] '
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = config('EMAIL_APP_ADDRESS')
+EMAIL_HOST_PASSWORD = config('EMAIL_APP_PWD')
+EMAIL_USE_SSL = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_FROM = EMAIL_HOST_USER
+EMAIL_SUBJECT_PREFIX = '[Ilconto] '
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 SITE_ID = 1

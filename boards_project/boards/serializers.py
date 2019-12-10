@@ -125,6 +125,7 @@ class BoardSerializer(serializers.ModelSerializer):
                         "activation_link": activation_url
                     }
                 )
+
                 send_mail(
                     f'You\'ve been invited to join the board {board.title}',
                     message="test email",
@@ -133,6 +134,7 @@ class BoardSerializer(serializers.ModelSerializer):
                     html_message=html_message,
                     fail_silently=False,
                 )
+                print(html_message)
                 pass
 
         return board
