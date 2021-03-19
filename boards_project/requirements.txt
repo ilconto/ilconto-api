@@ -8,7 +8,7 @@ django-allauth==0.39.1
 django-cors-headers==3.0.2
 django-extensions==2.2.1
 django-rest-auth==0.9.5
-djangorestframework==3.10.2
+djangorestframework==3.11.2
 idna==2.8
 importlib-metadata==0.19
 more-itertools==7.2.0
